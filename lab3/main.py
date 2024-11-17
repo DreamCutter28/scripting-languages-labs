@@ -72,8 +72,40 @@ def save_posts(posts):
         if conn:
             conn.close()
 
-if __name__ == "__main__":
+def get_user_posts(user_id):
+    """Получение всех постов конкретного пользователя"""
+    conn = None
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT * FROM posts WHERE user_id = ?', (user_id,))
+        posts = cursor.fetchall()
+        
+        return posts
+    
+    except sqlite3.Error as error:
+        print("Ошибка при получении постов пользователя:", error)
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+def main():
     create_database()
     posts = fetch_posts()
     if posts:
         save_posts(posts)
+    
+    # Пример получения постов пользователя
+    user_id = 1
+    user_posts = get_user_posts(user_id)
+    print(f"\nПосты пользователя {user_id}:")
+    for post in user_posts:
+        print(f"ID: {post[0]}")
+        print(f"Заголовок: {post[2]}")
+        print(f"Текст: {post[3][:100]}...")  # Выводим только первые 100 символов
+        print("-" * 50)
+
+if __name__ == "__main__":
+    main()
