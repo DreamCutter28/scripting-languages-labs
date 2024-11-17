@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import requests
 
 # Получаем путь к директории скрипта (иначе VSCode создает в корне...)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -8,6 +9,9 @@ def create_database():
     """Создание базы данных и таблицы posts"""
     # Путь к файлу базы данных относительно скрипта
     db_path = os.path.join(BASE_DIR, 'blog.db')
+    
+    # Инициализируем переменную перед try
+    conn = None
     
     try:
         # Проверяем, существует ли база данных
@@ -36,5 +40,18 @@ def create_database():
         if conn:
             conn.close()
 
+def fetch_posts():
+    """Получение данных с тестового сервера"""
+    try:
+        response = requests.get('https://jsonplaceholder.typicode.com/posts')
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as error:
+        print("Ошибка при получении данных:", error)
+        return None
+
 if __name__ == "__main__":
     create_database()
+    posts = fetch_posts()
+    if posts:
+        print(f"Успешно получено {len(posts)} постов")
