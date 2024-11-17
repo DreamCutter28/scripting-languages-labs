@@ -4,22 +4,20 @@ import requests
 
 # Получаем путь к директории скрипта (иначе VSCode создает в корне...)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'blog.db')
 
 def create_database():
     """Создание базы данных и таблицы posts"""
-    # Путь к файлу базы данных относительно скрипта
-    db_path = os.path.join(BASE_DIR, 'blog.db')
-    
     # Инициализируем переменную перед try
     conn = None
     
     try:
         # Проверяем, существует ли база данных
-        if os.path.exists(db_path):
+        if os.path.exists(DB_PATH):
             print("База данных уже существует")
             return
             
-        conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         cursor.execute('''
@@ -50,8 +48,32 @@ def fetch_posts():
         print("Ошибка при получении данных:", error)
         return None
 
+def save_posts(posts):
+    """Сохранение постов в базу данных"""
+    if not posts:
+        return
+    
+    conn = None
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        cursor.executemany(
+            'INSERT OR REPLACE INTO posts (id, user_id, title, body) VALUES (?, ?, ?, ?)',
+            [(post['id'], post['userId'], post['title'], post['body']) for post in posts]
+        )
+        
+        conn.commit()
+        print(f"Успешно сохранено {len(posts)} постов")
+        
+    except sqlite3.Error as error:
+        print("Ошибка при сохранении данных:", error)
+    finally:
+        if conn:
+            conn.close()
+
 if __name__ == "__main__":
     create_database()
     posts = fetch_posts()
     if posts:
-        print(f"Успешно получено {len(posts)} постов")
+        save_posts(posts)
