@@ -8,12 +8,15 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
 from PyQt5.QtCore import Qt
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'blog.db')
 
 class DatabaseConnection:
     def __init__(self, db_name="blog.db"):
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.db_name = os.path.join(base_dir, db_name)
         self.connection = None
+        self.create_database()
 
     def connect(self):
         try:
@@ -27,6 +30,31 @@ class DatabaseConnection:
         if self.connection:
             self.connection.close()
 
+    def create_database(self):
+        """Создание базы данных и таблицы posts"""
+        # Проверяем, существует ли база данных
+        if os.path.exists(self.db_name):
+            print("База данных уже существует")
+            return
+
+        try:
+            self.connection = sqlite3.connect(self.db_name)
+            cursor = self.connection.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS posts (
+                    id INTEGER PRIMARY KEY,
+                    user_id INTEGER,
+                    title TEXT,
+                    body TEXT
+                )
+            ''')
+            self.connection.commit()
+            print("База данных успешно создана")
+        except sqlite3.Error as error:
+            print("Ошибка при создании базы данных:", error)
+        finally:
+            if self.connection:
+                self.connection.close()
 
 class AddRecordDialog(QDialog):
     def __init__(self, parent=None):
@@ -61,12 +89,11 @@ class AddRecordDialog(QDialog):
             "body": self.body_field.text()
         }
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Просмотр базы данных")
-        self.db = DatabaseConnection()
+        self.db = DatabaseConnection(DB_PATH)
         if not self.db.connect():
             print("Не удалось подключиться к базе данных")
             sys.exit(1)
@@ -152,13 +179,11 @@ class MainWindow(QMainWindow):
         else:
             self.refresh_data()
 
-
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
-
 
 if __name__ == "__main__":
     main()
