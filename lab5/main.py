@@ -13,6 +13,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'blog.db')
 
 # Инициализация базы данных
+
+
 def create_database():
     """Создание базы данных и таблицы posts"""
     conn = None
@@ -21,10 +23,10 @@ def create_database():
         if os.path.exists(DB_PATH):
             print("База данных уже существует")
             return
-            
+
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY,
@@ -33,10 +35,10 @@ def create_database():
                 body TEXT
             )
         ''')
-        
+
         conn.commit()
         print("База данных успешно создана")
-        
+
     except sqlite3.Error as error:
         print("Ошибка при создании базы данных:", error)
     finally:
@@ -44,9 +46,12 @@ def create_database():
             conn.close()
 
 # Класс для управления сигналами
+
+
 class SignalEmitter(QObject):
     data_loaded = pyqtSignal(list)
     progress_updated = pyqtSignal(int)
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -92,7 +97,7 @@ class MainWindow(QMainWindow):
             response = requests.get(url)
             posts = response.json()
             self.signals.progress_updated.emit(50)
-            
+
             # Сохранение данных асинхронно
             asyncio.run(self.save_data(posts))
         except Exception as e:
@@ -122,13 +127,13 @@ class MainWindow(QMainWindow):
 
     def check_updates(self):
         self.log.append("Проверка обновлений...")
-        
+
         try:
             # Выполняем запрос на сервер
             url = "https://jsonplaceholder.typicode.com/posts"
             response = requests.get(url)
             posts = response.json()
-            
+
             # Получаем текущие ID постов в базе данных
             connection = sqlite3.connect(DB_PATH)
             cursor = connection.cursor()
@@ -137,14 +142,16 @@ class MainWindow(QMainWindow):
             connection.close()
 
             # Проверяем, появились ли новые посты или обновления
-            new_posts = [post for post in posts if post['id'] not in existing_post_ids]
+            new_posts = [post for post in posts if post['id']
+                         not in existing_post_ids]
 
             if new_posts:
                 self.log.append(f"Обнаружено {len(new_posts)} новых постов!")
-                asyncio.run(self.save_data(new_posts))  # Сохраняем новые посты в базу
+                # Сохраняем новые посты в базу
+                asyncio.run(self.save_data(new_posts))
             else:
                 self.log.append("Нет новых обновлений.")
-            
+
         except requests.RequestException as error:
             self.log.append(f"Ошибка при проверке обновлений: {error}")
 

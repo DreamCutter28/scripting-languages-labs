@@ -34,7 +34,7 @@ class APIClient:
 
     def create_post(self) -> Optional[Dict]:
         """Создание тестового поста"""
-        
+
         post_data = {
             'title': 'Тестовый пост',
             'body': 'Содержание тестового поста для лабораторной работы',
@@ -90,7 +90,7 @@ def main() -> None:
     client.get_even_user_posts()
 
     created_post = client.create_post()
-    
+
     if created_post:
         client.update_post(40)
 

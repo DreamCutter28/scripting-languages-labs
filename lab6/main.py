@@ -10,6 +10,7 @@ from PyQt5.QtCore import QRegExp
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
+
 class DataAnalysisApp(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -28,9 +29,10 @@ class DataAnalysisApp(QMainWindow):
         self.load_button = QPushButton("Загрузить CSV")
         self.load_button.clicked.connect(self.load_csv)
         self.graph_type = QComboBox()
-        self.graph_type.addItems(["Линейный график", "Гистограмма", "Круговая диаграмма"])
+        self.graph_type.addItems(
+            ["Линейный график", "Гистограмма", "Круговая диаграмма"])
         self.graph_type.currentIndexChanged.connect(self.on_graph_type_changed)
-        
+
         controls_layout.addWidget(self.load_button)
         controls_layout.addWidget(self.graph_type)
         layout.addLayout(controls_layout)
@@ -41,12 +43,13 @@ class DataAnalysisApp(QMainWindow):
 
         # Панель ввода данных
         self.input_layout = QHBoxLayout()
-        
+
         # Создаем все поля ввода
         self.date_input = QLineEdit()
         self.date_input.setPlaceholderText("YYYY-MM-DD")
-        self.date_input.setValidator(QRegExpValidator(QRegExp(r"^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$")))
-        
+        self.date_input.setValidator(QRegExpValidator(
+            QRegExp(r"^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$")))
+
         self.value1_input = QDoubleSpinBox()
         self.value2_input = QDoubleSpinBox()
         self.category_input = QLineEdit()
@@ -82,22 +85,23 @@ class DataAnalysisApp(QMainWindow):
         graph_type = self.graph_type.currentText()
         if graph_type == "Линейный график":
             fields = [self.input_layout.itemAt(0).widget(), self.date_input,
-                    self.input_layout.itemAt(2).widget(), self.value1_input]
+                      self.input_layout.itemAt(2).widget(), self.value1_input]
         elif graph_type == "Гистограмма":
             fields = [self.input_layout.itemAt(0).widget(), self.date_input,
-                    self.input_layout.itemAt(4).widget(), self.value2_input]
+                      self.input_layout.itemAt(4).widget(), self.value2_input]
         else:  # Круговая диаграмма
-            fields = [self.input_layout.itemAt(6).widget(), self.category_input]
+            fields = [self.input_layout.itemAt(
+                6).widget(), self.category_input]
 
         fields.append(self.add_button)
         for widget in fields:
             widget.show()
 
-
     def add_value(self):
         if self.data is None:
-            self.data = pd.DataFrame(columns=["Date", "Value1", "Value2", "Category"])
-        
+            self.data = pd.DataFrame(
+                columns=["Date", "Value1", "Value2", "Category"])
+
         try:
             new_data = {
                 "Date": self.date_input.text() or "2024-01-01",
@@ -105,10 +109,11 @@ class DataAnalysisApp(QMainWindow):
                 "Value2": self.value2_input.value(),
                 "Category": self.category_input.text() or "Default"
             }
-            
-            self.data = pd.concat([self.data, pd.DataFrame([new_data])], ignore_index=True)
+
+            self.data = pd.concat(
+                [self.data, pd.DataFrame([new_data])], ignore_index=True)
             self.plot_graph()
-            
+
         except Exception as e:
             QMessageBox.warning(self, "Ошибка", str(e))
 
@@ -118,21 +123,21 @@ class DataAnalysisApp(QMainWindow):
 
         self.canvas.figure.clf()
         ax = self.canvas.figure.add_subplot(111)
-        
+
         try:
             graph_type = self.graph_type.currentText()
-            
+
             if graph_type == "Линейный график":
                 ax.plot(self.data["Date"], self.data["Value1"], marker='o')
                 ax.set_title("Значения по датам")
                 ax.tick_params(axis='x', rotation=45)
-            
+
             elif graph_type == "Гистограмма":
                 dates = pd.to_datetime(self.data["Date"])
                 ax.bar(dates, self.data["Value2"])
                 ax.set_title("Значения Value2 по датам")
                 ax.tick_params(axis='x', rotation=45)
-            
+
             else:  # Круговая диаграмма
                 counts = self.data["Category"].value_counts()
                 if not counts.empty:
@@ -141,13 +146,14 @@ class DataAnalysisApp(QMainWindow):
 
             self.canvas.figure.tight_layout()
             self.canvas.draw()
-            
+
         except Exception as e:
             QMessageBox.warning(self, "Ошибка отрисовки", str(e))
 
     def load_csv(self):
         try:
-            filename, _ = QFileDialog.getOpenFileName(self, "Открыть CSV", "", "CSV files (*.csv)")
+            filename, _ = QFileDialog.getOpenFileName(
+                self, "Открыть CSV", "", "CSV files (*.csv)")
             if filename:
                 self.data = pd.read_csv(filename)
                 self.plot_graph()
@@ -158,11 +164,13 @@ class DataAnalysisApp(QMainWindow):
         self.update_visible_fields()
         self.plot_graph()
 
+
 def main():
     app = QApplication(sys.argv)
     window = DataAnalysisApp()
     window.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

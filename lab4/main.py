@@ -11,6 +11,7 @@ from PyQt5.QtCore import Qt
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'blog.db')
 
+
 class DatabaseConnection:
     def __init__(self, db_name="blog.db"):
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -56,6 +57,7 @@ class DatabaseConnection:
             if self.connection:
                 self.connection.close()
 
+
 class AddRecordDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -88,6 +90,7 @@ class AddRecordDialog(QDialog):
             "title": self.title_field.text(),
             "body": self.body_field.text()
         }
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -159,11 +162,15 @@ class MainWindow(QMainWindow):
             if data["user_id"] and data["title"] and data["body"]:
                 row = self.db_model.rowCount()
                 self.db_model.insertRow(row)
-                self.db_model.setData(self.db_model.index(row, 1), int(data["user_id"]))
-                self.db_model.setData(self.db_model.index(row, 2), data["title"])
-                self.db_model.setData(self.db_model.index(row, 3), data["body"])
+                self.db_model.setData(self.db_model.index(
+                    row, 1), int(data["user_id"]))
+                self.db_model.setData(
+                    self.db_model.index(row, 2), data["title"])
+                self.db_model.setData(
+                    self.db_model.index(row, 3), data["body"])
                 if not self.db_model.submitAll():
-                    print("Ошибка добавления записи:", self.db_model.lastError().text())
+                    print("Ошибка добавления записи:",
+                          self.db_model.lastError().text())
                 else:
                     self.refresh_data()
 
@@ -179,11 +186,13 @@ class MainWindow(QMainWindow):
         else:
             self.refresh_data()
 
+
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
